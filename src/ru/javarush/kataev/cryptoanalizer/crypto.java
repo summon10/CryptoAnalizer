@@ -12,6 +12,9 @@ public class crypto {
             'ъ', 'ы', 'ь', 'э', 'я', 'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З',
             'И', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ',
             'Ъ', 'Ы', 'Ь', 'Э', 'Я','.', ',', '«', '»', '"', '\'', ':', '!', '?', ' '};
+    private static final char[] ALPHABET_TAIL = {'а', 'б', 'в', 'г', 'д', 'е', 'ж', 'з',
+            'и', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ',
+            'ъ', 'ы', 'ь', 'э', 'я', ' '};
     private static final String DEFAULT_PATH_TO_DECRYPTED = "D:\\crypto\\unencrypted.txt";
     private static final String DEFAULT_PATH_TO_ENCRYPTED = "D:\\crypto\\encrypted.txt";
     private static String strPathToDecrypted = DEFAULT_PATH_TO_DECRYPTED;
@@ -136,7 +139,7 @@ public class crypto {
         {
             io.printStackTrace();
         }
-        String content = null;
+        String content = "";
         Path pathToInputEncrypted = Path.of(strPathToEncrypted);
         Path pathToOutputDecrypted = Path.of(strPathToDecrypted);
         try (BufferedReader reader = Files.newBufferedReader(pathToInputEncrypted))
@@ -149,6 +152,99 @@ public class crypto {
         } catch (IOException e) {
             e.getMessage();
         }
+        ArrayList<Character> decrypted = decryptionProcessor(content);
+
+        try (BufferedWriter writer = Files.newBufferedWriter(pathToOutputDecrypted))
+        {
+            for (Character s : decrypted) {
+                writer.write(String.valueOf(s));
+            }
+
+        } catch (IOException e) {
+            e.getMessage();
+        }
+
+
+
+    }
+    private static void bruteForce()
+    {
+        char space = ' ';
+        String content = "";
+        try (Scanner kbd = new Scanner(System.in)) {
+            System.out.println("Enter File name you want to decrypt or press Enter: ");
+            if (!kbd.nextLine().isEmpty()) strPathToEncrypted = kbd.nextLine();
+            System.out.println("Enter Decrypted File name or press Enter: ");
+            if (!kbd.nextLine().isEmpty()) strPathToDecrypted = kbd.nextLine();
+        }
+        catch (NoSuchElementException io)
+        {
+            io.printStackTrace();
+        }
+        Path pathToInputEncrypted = Path.of(strPathToEncrypted);
+        Path pathToOutputDecrypted = Path.of(strPathToDecrypted);
+        try (BufferedReader reader = Files.newBufferedReader(pathToInputEncrypted))
+        {
+            String tempLine;
+            while((tempLine = reader.readLine()) != null){
+                content = content + tempLine;
+            }
+
+        } catch (IOException e) {
+            e.getMessage();
+        }
+
+        analyze(content);
+        ArrayList<Character> decrypted = decryptionProcessor(content);
+
+        try (BufferedWriter writer = Files.newBufferedWriter(pathToOutputDecrypted))
+        {
+            for (Character s : decrypted) {
+                writer.write(String.valueOf(s));
+            }
+
+        } catch (IOException e) {
+            e.getMessage();
+        }
+    }
+
+    private static void analyze(String content) {
+        HashMap<Character, Integer> countOfSymbols = new HashMap<>();
+        Integer maxCount = 0;
+        Character mostFrequencySymbol=null;
+        int posOfMostFrequencySymbol = 0;
+        int posOfSpace = 0;
+        for (int i = 0; i < ALPHABET.length; i++) {
+            Character currentSymbol = ALPHABET[i];
+            Integer count = content.length() - content.replace(String.valueOf(currentSymbol), "").length();
+            countOfSymbols.put(currentSymbol, count);
+            if (count > maxCount) maxCount = count;
+
+        }
+
+        Collection<Character> count = countOfSymbols.keySet();
+        for (Character temp : count)
+        {
+            Integer value = countOfSymbols.get(temp);
+            if (maxCount.equals(value)) mostFrequencySymbol = temp;
+        }
+
+        for (int i = 0; i < ALPHABET.length; i++) {
+            if (mostFrequencySymbol.equals(ALPHABET[i])) posOfMostFrequencySymbol = i;
+            if (ALPHABET[i]== ' ') posOfSpace = i;
+        }
+        if (posOfMostFrequencySymbol - posOfSpace>= 0) key = posOfMostFrequencySymbol - posOfSpace;
+        if (posOfMostFrequencySymbol - posOfSpace < 0) key = (ALPHABET.length - (-1*(posOfMostFrequencySymbol - posOfSpace)));
+
+        System.out.println(key);
+
+    }
+    private static void stat()
+    {
+
+    }
+    private static ArrayList<Character> decryptionProcessor (String content)
+    {
         char[] forDecryption = content.toCharArray();
         char[] decrypted = new char[content.length()];
 
@@ -180,26 +276,7 @@ public class crypto {
                 i--;
             }
         }
-        try (BufferedWriter writer = Files.newBufferedWriter(pathToOutputDecrypted))
-        {
-            for (Character s : characterArrayList) {
-                writer.write(String.valueOf(s));
-            }
-
-        } catch (IOException e) {
-            e.getMessage();
-        }
-
-
-
-    }
-    private static void bruteForce()
-    {
-
-    }
-    private static void stat()
-    {
-
+        return characterArrayList;
     }
 
 }
