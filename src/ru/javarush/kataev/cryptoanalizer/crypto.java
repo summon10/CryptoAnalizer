@@ -8,17 +8,19 @@ import java.util.*;
 public class crypto {
 
     private static final char[] ALPHABET = {'а', 'б', 'в', 'г', 'д', 'е', 'ж', 'з',
-            'и', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ',
-            'ъ', 'ы', 'ь', 'э', 'я', 'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З',
+            'и', 'й','к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ',
+            'ъ', 'ы', 'ь', 'э', 'ю','я', 'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З',
             'И', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ',
-            'Ъ', 'Ы', 'Ь', 'Э', 'Я','.', ',', '«', '»', '"', '\'', ':', '!', '?', ' '};
+            'Ъ', 'Ы', 'Ь', 'Э', 'Ю', 'Я','.', ',', '«', '»', '"', '\'', ':', '!', '?', ' '};
     private static final char[] ALPHABET_TAIL = {'а', 'б', 'в', 'г', 'д', 'е', 'ж', 'з',
             'и', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ',
-            'ъ', 'ы', 'ь', 'э', 'я', ' '};
+            'ъ', 'ы', 'ь', 'э', 'ю','я', ' '};
     private static final String DEFAULT_PATH_TO_DECRYPTED = "D:\\crypto\\unencrypted.txt";
     private static final String DEFAULT_PATH_TO_ENCRYPTED = "D:\\crypto\\encrypted.txt";
+    private static final String DEFAULT_PATH_TO_DICTIONARY = "D:\\crypto\\dictionary.txt";
     private static String strPathToDecrypted = DEFAULT_PATH_TO_DECRYPTED;
     private static String strPathToEncrypted = DEFAULT_PATH_TO_ENCRYPTED;
+    private static String strPathToDictionary = DEFAULT_PATH_TO_DICTIONARY;
     public static int key = 0 ;
 
     public static void main(String[] args) {
@@ -49,7 +51,7 @@ public class crypto {
         }
     }
     private static void encryptor ()
-    {
+    {   String content = "";
         try (Scanner kbd = new Scanner(System.in))
         {
         System.out.println("Enter File name you want to encrypt or press Enter: ");
@@ -58,69 +60,14 @@ public class crypto {
         if (!kbd.nextLine().isEmpty()) strPathToEncrypted = kbd.nextLine();
         System.out.println("Enter key for encryption: ");
         key = (kbd.nextInt())% ALPHABET.length;
-    }
+        }
         catch (NoSuchElementException io)
         {
             io.printStackTrace();
         }
-
-        Path pathToInputUnencrypted = Path.of(strPathToDecrypted);
-        Path pathToOutputEncrypted = Path.of(strPathToEncrypted);
-        if (!(Files.exists(pathToInputUnencrypted)))
-        {
-            System.out.println("Unencrypted file doesn't exists");
-        }
-        String content = null;
-        try (BufferedReader reader = Files.newBufferedReader(pathToInputUnencrypted))
-        {
-            String tempLine;
-            while((tempLine = reader.readLine()) != null){
-                content = content + tempLine;
-            }
-
-        } catch (IOException e) {
-            e.getMessage();
-        }
-        char[] forEncryption = content.toCharArray();
-        char[] encrypted = new char[content.length()];
-
-        for (int i = 0; i < forEncryption.length; i++) {
-                 for (int j = 0; j < ALPHABET.length; j++) {
-
-                     if (forEncryption[i] == ALPHABET[j]) {
-                         if (j + key >= ALPHABET.length) {
-                             encrypted[i] = ALPHABET[(j + key) % (ALPHABET.length)];
-
-                         }
-                         else {
-                             encrypted[i] = ALPHABET[j + key];
-
-                         }
-                     }
-
-                 }
-            }
-        Character[] encryptedArray = new Character[encrypted.length];
-        for (int i = 0; i < encrypted.length; i++) {
-            encryptedArray[i] = Character.valueOf(encrypted[i]);
-        }
-        ArrayList<Character> characterArrayList = new ArrayList<>(Arrays.asList(encryptedArray));
-        for (int i = 0; i < characterArrayList.size(); i++) {
-            if (characterArrayList.get(i)=='\u0000')
-            {
-                characterArrayList.remove(i);
-                i--;
-            }
-        }
-        try (BufferedWriter writer = Files.newBufferedWriter(pathToOutputEncrypted))
-        {
-            for (Character s : characterArrayList) {
-                writer.write(String.valueOf(s));
-            }
-
-        } catch (IOException e) {
-            e.getMessage();
-        }
+        content = fileReader(Path.of(strPathToDecrypted));
+        ArrayList<Character> encrypted = encryptProcessor(content);
+        fileWriter(Path.of(strPathToEncrypted), encrypted);
     }
 
 
@@ -139,37 +86,15 @@ public class crypto {
         {
             io.printStackTrace();
         }
-        String content = "";
-        Path pathToInputEncrypted = Path.of(strPathToEncrypted);
-        Path pathToOutputDecrypted = Path.of(strPathToDecrypted);
-        try (BufferedReader reader = Files.newBufferedReader(pathToInputEncrypted))
-        {
-            String tempLine;
-            while((tempLine = reader.readLine()) != null){
-                content = content + tempLine;
-            }
 
-        } catch (IOException e) {
-            e.getMessage();
-        }
+        String content = fileReader(Path.of(strPathToEncrypted));
         ArrayList<Character> decrypted = decryptionProcessor(content);
 
-        try (BufferedWriter writer = Files.newBufferedWriter(pathToOutputDecrypted))
-        {
-            for (Character s : decrypted) {
-                writer.write(String.valueOf(s));
-            }
-
-        } catch (IOException e) {
-            e.getMessage();
-        }
-
-
+        fileWriter(Path.of(strPathToDecrypted),decrypted);
 
     }
     private static void bruteForce()
     {
-        char space = ' ';
         String content = "";
         try (Scanner kbd = new Scanner(System.in)) {
             System.out.println("Enter File name you want to decrypt or press Enter: ");
@@ -181,31 +106,11 @@ public class crypto {
         {
             io.printStackTrace();
         }
-        Path pathToInputEncrypted = Path.of(strPathToEncrypted);
-        Path pathToOutputDecrypted = Path.of(strPathToDecrypted);
-        try (BufferedReader reader = Files.newBufferedReader(pathToInputEncrypted))
-        {
-            String tempLine;
-            while((tempLine = reader.readLine()) != null){
-                content = content + tempLine;
-            }
-
-        } catch (IOException e) {
-            e.getMessage();
-        }
-
+        content = fileReader(Path.of(strPathToEncrypted));
         analyze(content);
         ArrayList<Character> decrypted = decryptionProcessor(content);
+        fileWriter(Path.of(strPathToDecrypted),decrypted);
 
-        try (BufferedWriter writer = Files.newBufferedWriter(pathToOutputDecrypted))
-        {
-            for (Character s : decrypted) {
-                writer.write(String.valueOf(s));
-            }
-
-        } catch (IOException e) {
-            e.getMessage();
-        }
     }
 
     private static void analyze(String content) {
@@ -240,7 +145,54 @@ public class crypto {
 
     }
     private static void stat()
-    {
+    {   HashMap<Character, Integer> CharsInDictionary = new HashMap<>();
+        HashMap<Character, Integer> CharsInEncrypted = new HashMap<>();
+        String content="";
+        String dictionary="";
+        try (Scanner kbd = new Scanner(System.in)) {
+            System.out.println("Enter File name you want to decrypt or press Enter: ");
+            if (!kbd.nextLine().isEmpty()) strPathToEncrypted = kbd.nextLine();
+            System.out.println("Enter Dictionary File name or press Enter: ");
+            if (!kbd.nextLine().isEmpty()) strPathToDictionary = kbd.nextLine();
+            System.out.println("Enter Decrypted File name or press Enter: ");
+            if (!kbd.nextLine().isEmpty()) strPathToDecrypted = kbd.nextLine();
+
+        }
+        catch (NoSuchElementException io)
+        {
+            io.printStackTrace();
+        }
+
+        content = fileReader(Path.of(strPathToDecrypted));
+        dictionary = fileReader(Path.of(strPathToDictionary));
+        content = content.toLowerCase();
+        dictionary = dictionary.toLowerCase();
+        for (int i = 0; i < ALPHABET_TAIL.length; i++) {
+            Character currentSymbol = ALPHABET_TAIL[i];
+            Integer countInEncrypted = content.length() - content.replace(String.valueOf(currentSymbol), "").length();
+            CharsInEncrypted.put(currentSymbol, countInEncrypted);
+            Integer countInDictionary = dictionary.length() - dictionary.replace(String.valueOf(currentSymbol), "").length();
+            CharsInDictionary.put(currentSymbol,countInDictionary);
+        }
+        List<Map.Entry<Character, Integer>> referenceList = new ArrayList<>(CharsInDictionary.entrySet());
+        referenceList.sort(Map.Entry.comparingByValue());
+        List<Map.Entry<Character, Integer>> encryptedList = new ArrayList<>(CharsInEncrypted.entrySet());
+        encryptedList.sort(Map.Entry.comparingByValue());
+        Map<Character, Character> charMapping = new HashMap<>();
+        System.out.println(encryptedList);
+        System.out.println(referenceList);
+        for (int i = 0; i < encryptedList.size() && i < referenceList.size(); i++) {
+            charMapping.put(encryptedList.get(i).getKey(), referenceList.get(i).getKey());
+        }
+        char mostCommonReferenceChar = referenceList.get(referenceList.size() - 1).getKey();
+        System.out.println(charMapping);
+        StringBuilder decryptedText = new StringBuilder();
+        for (char c : content.toCharArray()) {
+            decryptedText.append(charMapping.getOrDefault(c, mostCommonReferenceChar));
+        }
+
+        System.out.println(decryptedText.toString());
+       // fileWriter(Path.of(strPathToEncrypted), decryptedText.);
 
     }
     private static ArrayList<Character> decryptionProcessor (String content)
@@ -278,5 +230,66 @@ public class crypto {
         }
         return characterArrayList;
     }
+    private static ArrayList<Character> encryptProcessor (String content)
+    {
+        char[] forEncryption = content.toCharArray();
+        char[] encrypted = new char[content.length()];
 
+        for (int i = 0; i < forEncryption.length; i++) {
+            for (int j = 0; j < ALPHABET.length; j++) {
+
+                if (forEncryption[i] == ALPHABET[j]) {
+                    if (j + key >= ALPHABET.length) {
+                        encrypted[i] = ALPHABET[(j + key) % (ALPHABET.length)];
+
+                    }
+                    else {
+                        encrypted[i] = ALPHABET[j + key];
+
+                    }
+                }
+
+            }
+        }
+        Character[] encryptedArray = new Character[encrypted.length];
+        for (int i = 0; i < encrypted.length; i++) {
+            encryptedArray[i] = Character.valueOf(encrypted[i]);
+        }
+        ArrayList<Character> characterArrayList = new ArrayList<>(Arrays.asList(encryptedArray));
+        for (int i = 0; i < characterArrayList.size(); i++) {
+            if (characterArrayList.get(i)=='\u0000')
+            {
+                characterArrayList.remove(i);
+                i--;
+            }
+        }
+        return characterArrayList;
+    }
+    private static String fileReader (Path pathToRead)
+    {
+        String content="";
+        try (BufferedReader reader = Files.newBufferedReader(pathToRead))
+        {
+            String tempLine;
+            while((tempLine = reader.readLine()) != null){
+                content = content + tempLine;
+            }
+
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+        return content;
+    }
+    private static void fileWriter (Path pathToWrite, ArrayList<Character> text)
+    {
+        try (BufferedWriter writer = Files.newBufferedWriter(pathToWrite))
+        {
+            for (Character s : text) {
+                writer.write(String.valueOf(s));
+            }
+
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+    }
 }
